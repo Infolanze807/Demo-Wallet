@@ -1,0 +1,112 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body
+{
+background-color: #050D1D;
+display: flex;
+align-items: center;
+justify-content: center;
+height: 90vh;
+}
+.box
+{
+align-items: center;
+justify-content: center;
+padding: 10px 20px;
+width: 700px;
+position: relative;
+}
+.heder
+{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  padding: 10px 15px;
+ border-radius: 10px;
+ margin-bottom: 10px;
+}
+.heder button
+{
+  padding: 5px 10px;
+  background-color: black;
+  border: none;
+  color: white;
+  border-radius: 5px;
+}
+.btn-1
+{
+  margin-left: 50px;
+}
+.data
+{
+  text-align:left;
+  margin: 10px 0;
+  background-color: whitesmoke;
+  border-radius: 10px;
+  padding: 10px;
+  font-weight: 500;
+}
+.form-main
+{
+  background-color: white;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.form{
+  width: 100%;
+  padding: 5px 15px;
+}
+.form input
+{
+width: 100%;
+height: 35px;
+padding-left: 10px;
+margin: 10px 0;
+border-radius: 10px;
+border: none;
+background-color: rgb(237, 237, 237);
+outline: none;
+}
+.form button
+{
+width: 100%;
+height: 30px;
+border: none;
+border-radius: 10px;
+margin: 20px 0;
+cursor: pointer;
+background-color:#050D1D ;
+color: white;
+
+}
+
+.transactions {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+}
+
+.transactions h3 {
+  margin-top: 0;
+}
+
+.transactions ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.transactions li {
+  border-bottom: 1px solid #ddd;
+  padding: 10px 0;
+}
+
+.transactions li:last-child {
+  border-bottom: none;
+}
