@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Web3 from "web3";
+import { ethers } from 'ethers';
 
 function App() {
   const [currentAccount, setCurrentAccount] = useState(null);
+  const [transactions, setTransactions] = useState([]);
   const [balance, setBalance] = useState(null);
   const [network, setNetwork] = useState(null);
   const [sendToAddress, setSendToAddress] = useState("");
   const [sendAmount, setSendAmount] = useState("");
 
   useEffect(() => {
-    if (window.ethereum) {
+    if (window.compass) {
       window.ethereum.on("chainChanged", handleChainChanged);
       window.ethereum.on("accountsChanged", handleAccountsChanged);
     }
