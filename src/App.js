@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
 import Web3 from "web3";
-// import { ethers } from 'ethers';
 
 function App() {
   const [currentAccount, setCurrentAccount] = useState(null);
-  const [transactions, setTransactions] = useState([]);
   const [balance, setBalance] = useState(null);
   const [network, setNetwork] = useState(null);
   const [sendToAddress, setSendToAddress] = useState("");
   const [sendAmount, setSendAmount] = useState("");
+  const [txHash, setTxHash] = useState(""); 
 
   useEffect(() => {
-    if (window.compass) {
+    if (window.ethereum) {
       window.ethereum.on("chainChanged", handleChainChanged);
       window.ethereum.on("accountsChanged", handleAccountsChanged);
     }
@@ -25,32 +24,28 @@ function App() {
         );
       }
     };
-  }, []);
+  });
 
   const handleChainChanged = async () => {
     const web3 = new Web3(window.ethereum);
     const networkId = Number(await web3.eth.net.getId());
     const networkName = getNetworkName(networkId);
     setNetwork(networkName);
+    console.log("Chain changed to network:", networkName);
 
-    // Also update account and balance when network changes
     const accounts = await web3.eth.getAccounts();
     if (accounts.length > 0) {
       setCurrentAccount(accounts[0]);
       const balanceWei = await web3.eth.getBalance(accounts[0]);
       const balanceEth = web3.utils.fromWei(balanceWei, "ether");
       setBalance(balanceEth);
-
-      // Log network change data
-      console.log("Network changed:");
-      console.log("New Network ID:", networkId);
-      console.log("New Network Name:", networkName);
-      console.log("Wallet Address:", accounts[0]);
-      console.log("Wallet Balance:", balanceEth);
+      console.log("Current account:", accounts[0]);
+      console.log("Balance updated:", balanceEth, "ETH");
     } else {
       setCurrentAccount(null);
       setBalance(null);
       setNetwork(null);
+      console.log("No accounts detected");
     }
   };
 
@@ -61,10 +56,13 @@ function App() {
       const balanceWei = await web3.eth.getBalance(accounts[0]);
       const balanceEth = web3.utils.fromWei(balanceWei, "ether");
       setBalance(balanceEth);
+      console.log("Account changed to:", accounts[0]);
+      console.log("Balance updated:", balanceEth, "ETH");
     } else {
       setCurrentAccount(null);
       setBalance(null);
       setNetwork(null);
+      console.log("No accounts detected");
     }
   };
 
@@ -77,23 +75,18 @@ function App() {
         method: "eth_requestAccounts",
       });
       setCurrentAccount(accounts[0]);
+      console.log("Wallet connected:", accounts[0]);
 
       const web3 = new Web3(window.ethereum);
-
-      // Fetch balance
       const balanceWei = await web3.eth.getBalance(accounts[0]);
       const balanceEth = web3.utils.fromWei(balanceWei, "ether");
       setBalance(balanceEth);
+      console.log("Balance updated:", balanceEth, "ETH");
 
-      // Fetch network
       const networkId = Number(await web3.eth.net.getId());
-      console.log("Network ID:", networkId);
-      setNetwork(getNetworkName(networkId));
-
-      // Log data
-      console.log("Wallet Address:", accounts[0]);
-      console.log("Wallet Balance:", balanceEth);
-      console.log("Wallet Network:", getNetworkName(networkId));
+      const networkName = getNetworkName(networkId);
+      setNetwork(networkName);
+      console.log("Network connected:", networkName);
     } catch (error) {
       console.error(error);
       alert("An error occurred while connecting to the wallet");
@@ -136,6 +129,10 @@ function App() {
         return "Linea Sepolia";
       case 59140:
         return "Linea Goerli";
+      case 713715:
+        return "SEI DEV";
+      case 1329:
+        return "SEI";
       default:
         return "Unknown";
     }
@@ -146,25 +143,28 @@ function App() {
       alert("Please enter both address and amount to send.");
       return;
     }
-
+  
     try {
       const web3 = new Web3(window.ethereum);
       const amountWei = web3.utils.toWei(sendAmount, "ether");
-
-      // Log payment process
-      console.log("Sending transaction...");
-      console.log("From:", currentAccount);
-      console.log("To:", sendToAddress);
-      console.log("Amount:", sendAmount);
-
-      // Send transaction
-      await web3.eth.sendTransaction({
+  
+      const nonce = await web3.eth.getTransactionCount(currentAccount, "latest");
+      const gasPrice = await web3.eth.getGasPrice();
+      const gasLimit = 21000; // Basic transaction gas limit
+  
+      const tx = {
         from: currentAccount,
         to: sendToAddress,
         value: amountWei,
-      });
-
-      console.log("Transaction sent successfully!");
+        gas: gasLimit,
+        gasPrice: gasPrice,
+        nonce: nonce,
+      };
+  
+      const txHash = await web3.eth.sendTransaction(tx);
+      console.log("Transaction sent. TxHash:", txHash);
+      setTxHash(txHash.transactionHash); //
+  
       alert("Transaction sent successfully!");
       setSendToAddress("");
       setSendAmount("");
@@ -175,43 +175,50 @@ function App() {
   };
 
   return (
-    <div className="box">
-      <div className="heder">
-        <div>Connect your wallet</div>
-        <button onClick={connectWallet} className="btn-1">
-          Connect
-        </button>
+  <div className="box">
+    <div className="heder">
+      <div>Connect your wallet</div>
+      <button onClick={connectWallet} className="btn-1">
+        Connect
+      </button>
+    </div>
+    {currentAccount && (
+      <div className="data">
+        <p>Wallet Address: {currentAccount}</p>
+        <p>
+          Wallet Balance: {balance} ({network && `${network}`})
+        </p>
+        <p>Wallet Network: {network}</p>
       </div>
-      {currentAccount && (
-        <div className="data">
-          <p>Wallet Address: {currentAccount}</p>
-          <p>
-            Wallet Balance: {balance} ({network && `${network}`})
-          </p>
-          <p>Wallet Network: {network}</p>
+    )}
+    <div className="form-main">
+      <div className="form">
+        <h3>Send Crypto Currency</h3>
+        <input
+          type="text"
+          placeholder="Address"
+          value={sendToAddress}
+          onChange={(e) => setSendToAddress(e.target.value)}
+        />
+        <br></br>
+        <input
+          type="text"
+          placeholder="Amount"
+          value={sendAmount}
+          onChange={(e) => setSendAmount(e.target.value)}
+        />
+        <br></br>
+        <button onClick={sendTransaction}>Send</button>
+          {txHash && (
+        <div className="form">
+          <h3>Transaction Hash</h3>
+          <p>{txHash}</p>
         </div>
       )}
-      <div className="form-main">
-        <div className="form">
-          <input
-            type="text"
-            placeholder="Address"
-            value={sendToAddress}
-            onChange={(e) => setSendToAddress(e.target.value)}
-          />
-          <br></br>
-          <input
-            type="text"
-            placeholder="Amount"
-            value={sendAmount}
-            onChange={(e) => setSendAmount(e.target.value)}
-          />
-          <br></br>
-          <button onClick={sendTransaction}>Send</button>
-        </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 export default App;
