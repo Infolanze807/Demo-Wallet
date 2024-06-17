@@ -645,7 +645,7 @@ function App() {
           />
           <br></br>
           {sendAmountUsd && seiToUsdRate !== null && (
-            <p>USD TO : {sendAmountSei}</p>
+            <p>USD TO : {sendAmountSei} SEI</p>
           )}
           <button onClick={sendTransaction}>Send</button>
           {txHash && (
