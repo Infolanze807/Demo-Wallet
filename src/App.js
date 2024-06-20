@@ -444,222 +444,472 @@
 
 // // with switch network
 
+// import React, { useState, useEffect } from "react";
+// import Web3 from "web3";
+
+// const API_URL = "https://api.diadata.org/v1/assetQuotation/Sei/0x0000000000000000000000000000000000000000";
+
+// function App() {
+//   const [currentAccount, setCurrentAccount] = useState(null);
+//   const [balance, setBalance] = useState(null);
+//   const [network, setNetwork] = useState(null);
+//   const [sendToAddress, setSendToAddress] = useState("0xfE597edD372fBd54f3E3a5637432fAa42a591A6D");
+//   const [sendAmountUsd, setSendAmountUsd] = useState("");
+//   const [sendAmountSei, setSendAmountSei] = useState("");
+//   const [txHash, setTxHash] = useState("");
+//   const [seiToUsdRate, setSeiToUsdRate] = useState(null);
+
+//   useEffect(() => {
+//     const fetchSeiToUsdRate = async () => {
+//       try {
+//         const response = await fetch(API_URL);
+//         if (!response.ok) {
+//           throw new Error("Failed to fetch SEI to USD rate");
+//         }
+//         const data = await response.json();
+//         const rate = data.Price; // Extract the rate from the response
+//         setSeiToUsdRate(rate);
+//       } catch (error) {
+//         console.error("Failed to fetch SEI to USD rate:", error.message);
+//       }
+//     };
+
+//     fetchSeiToUsdRate();
+//   }, []);
+
+//   const updateAccountAndBalance = async () => {
+//     const web3 = new Web3(window.ethereum);
+//     const accounts = await web3.eth.getAccounts();
+//     setCurrentAccount(accounts[0]);
+
+//     const balanceWei = await web3.eth.getBalance(accounts[0]);
+//     const balanceEth = web3.utils.fromWei(balanceWei, "ether");
+//     setBalance(balanceEth);
+
+//     console.log("Current account:", accounts[0]);
+//     console.log("Balance updated:", balanceEth, "SEI");
+//   };
+
+//   const sendTransaction = async () => {
+//     try {
+//       if (!window.ethereum) {
+//         return alert("MetaMask is not installed");
+//       }
+
+//       if (!currentAccount) {
+//         await connectWallet();
+//         if (!currentAccount) {
+//           return; // If still no current account after attempting to connect, stop here
+//         }
+//       }
+
+//       if (!sendToAddress || !sendAmountSei) {
+//         alert("Please enter both address and amount to send.");
+//         return;
+//       }
+
+//       const web3 = new Web3(window.ethereum);
+//       const amountWei = web3.utils.toWei(sendAmountSei, "ether");
+
+//       const nonce = await web3.eth.getTransactionCount(currentAccount, "latest");
+//       const gasPrice = await web3.eth.getGasPrice();
+//       const gasLimit = 21000; // Basic transaction gas limit
+
+//       const tx = {
+//         from: currentAccount,
+//         to: sendToAddress,
+//         value: amountWei,
+//         gas: gasLimit,
+//         gasPrice: gasPrice,
+//         nonce: nonce,
+//       };
+
+//       const txHash = await web3.eth.sendTransaction(tx);
+//       console.log("Transaction sent. TxHash:", txHash);
+//       setTxHash(txHash.transactionHash); //
+
+//       alert("Transaction sent successfully!");
+//       setSendToAddress("");
+//       setSendAmountUsd("");
+//       setSendAmountSei("");
+//     } catch (error) {
+//       console.error("Failed to send transaction:", error);
+//       alert("Failed to send transaction.");
+//     }
+//   };
+
+//   const connectWallet = async () => {
+//     try {
+//       if (!window.ethereum) {
+//         return alert("MetaMask is not installed");
+//       }
+      
+//       const accounts = await window.ethereum.request({
+//         method: "eth_requestAccounts",
+//       });
+//       setCurrentAccount(accounts[0]);
+//       console.log("Wallet connected:", accounts[0]);
+
+//       const chainIdHex = await window.ethereum.request({
+//         method: "eth_chainId",
+//       });
+//       const networkId = parseInt(chainIdHex, 16); // Convert hexadecimal chainId to decimal
+//       console.log("Chain ID returned by MetaMask:", networkId);
+
+//       switch (networkId) {
+//         case 713715: // SEI Devnet
+//           setNetwork("SEI Devnet");
+//           await updateAccountAndBalance();
+//           break;
+//         default:
+//           setNetwork(null); // Reset network state
+//           setCurrentAccount(null); // Reset current account state
+//           setBalance(null); // Reset balance state
+//           alert("Please switch to SEI Devnet network");
+//           await switchToSeiDevnet();
+//           break;
+//       }
+//     } catch (error) {
+//       console.error(error);
+//       alert("An error occurred while connecting to the wallet");
+//     }
+//   };
+
+//   const switchToSeiDevnet = async () => {
+//     const networks = {
+//       SEI_DEVNET: {
+//         chainId: '0xae3f3',
+//         chainName: 'SEI Devnet',
+//         nativeCurrency: {
+//           name: 'SEI Devnet',
+//           symbol: 'SEI',
+//           decimals: 18,
+//         },
+//         rpcUrls: ['https://evm-rpc-arctic-1.sei-apis.com'], // Replace with actual SEI Devnet RPC URL
+//         blockExplorerUrls: ['https://seistream.app'],
+//       },
+//     };
+
+//     const params = networks.SEI_DEVNET;
+
+//     try {
+//       await window.ethereum.request({
+//         method: 'wallet_addEthereumChain',
+//         params: [params],
+//       });
+//     } catch (error) {
+//       console.error('Failed to switch network:', error);
+//       alert('Failed to switch network.');
+//     }
+//   };
+
+//   const handleAmountChange = (amount) => {
+//     setSendAmountUsd(amount);
+//     if (seiToUsdRate) {
+//       const convertedAmount = parseFloat(amount) / seiToUsdRate;
+//       setSendAmountSei(convertedAmount.toFixed(18)); // Adjust decimal places if necessary
+//     }
+//   };
+
+//   return (
+//     <div className="box">
+//       <div className="heder">
+//         <div>Connect your wallet</div>
+//         <button onClick={connectWallet} className="btn-1">
+//           Connect
+//         </button>
+//       </div>
+//       {currentAccount && (
+//         <div className="data">
+//           <p>Wallet Address: {currentAccount}</p>
+//           <p>Wallet Balance: {balance} SEI ({network})</p>
+//           <p>Wallet Network: {network}</p>
+//         </div>
+//       )}
+//       <div className="form-main">
+//         <div className="form">
+//           <h3>Send Crypto Currency</h3>
+//           <input
+//             type="text"
+//             placeholder="Address"
+//             value={sendToAddress}
+//             disabled
+//             onChange={(e) => setSendToAddress(e.target.value)}
+//           />
+//           <br></br>
+//           <input
+//             type="text"
+//             placeholder="Amount in USD"
+//             value={sendAmountUsd}
+//             onChange={(e) => handleAmountChange(e.target.value)}
+//           />
+//           <br></br>
+//           {sendAmountUsd && seiToUsdRate !== null && (
+//             <p>USD TO : {sendAmountSei} SEI</p>
+//           )}
+//           <button onClick={sendTransaction}>Send</button>
+//           {txHash && (
+//             <div className="form">
+//               <h3>Transaction Hash</h3>
+//               <p>{txHash}</p>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// export default App;
+
+// // convertor
+
+
 import React, { useState, useEffect } from "react";
 import Web3 from "web3";
-
-const API_URL = "https://api.diadata.org/v1/assetQuotation/Sei/0x0000000000000000000000000000000000000000";
-
+import {abi} from "./sbi"
 function App() {
   const [currentAccount, setCurrentAccount] = useState(null);
   const [balance, setBalance] = useState(null);
   const [network, setNetwork] = useState(null);
-  const [sendToAddress, setSendToAddress] = useState("0xfE597edD372fBd54f3E3a5637432fAa42a591A6D");
-  const [sendAmountUsd, setSendAmountUsd] = useState("");
-  const [sendAmountSei, setSendAmountSei] = useState("");
-  const [txHash, setTxHash] = useState("");
-  const [seiToUsdRate, setSeiToUsdRate] = useState(null);
+  const [sendToAddress, setSendToAddress] = useState("");
+  const [contractAddress, setContractAddress] = useState("0xF2eFEAAe7F7665F04d6A34a6021495aDA6DC95A5");
+  const [nftBalance, setNftBalance] = useState(null);
+  const [tokenIds, setTokenIds] = useState([]);
+  const [transactionHash, setTransactionHash] = useState(null);
+
+  const PRIVATE_KEY = "37665e889eae27f25dd02cf761866daf5d3bbb499e4612193880ed6f405898df"; // Define your private key here
 
   useEffect(() => {
-    const fetchSeiToUsdRate = async () => {
-      try {
-        const response = await fetch(API_URL);
-        if (!response.ok) {
-          throw new Error("Failed to fetch SEI to USD rate");
-        }
-        const data = await response.json();
-        const rate = data.Price; // Extract the rate from the response
-        setSeiToUsdRate(rate);
-      } catch (error) {
-        console.error("Failed to fetch SEI to USD rate:", error.message);
+    if (window.ethereum) {
+      window.ethereum.on("chainChanged", handleChainChanged);
+      window.ethereum.on("accountsChanged", handleAccountsChanged);
+    }
+
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener("chainChanged", handleChainChanged);
+        window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      if (window.ethereum && window.ethereum.isMetaMask) {
+        await connectWallet();
       }
     };
 
-    fetchSeiToUsdRate();
+    init();
   }, []);
 
-  const updateAccountAndBalance = async () => {
+  const handleChainChanged = async () => {
     const web3 = new Web3(window.ethereum);
+    const networkId = Number(await web3.eth.net.getId());
+    const networkName = getNetworkName(networkId);
+    setNetwork(networkName);
+
     const accounts = await web3.eth.getAccounts();
-    setCurrentAccount(accounts[0]);
-
-    const balanceWei = await web3.eth.getBalance(accounts[0]);
-    const balanceEth = web3.utils.fromWei(balanceWei, "ether");
-    setBalance(balanceEth);
-
-    console.log("Current account:", accounts[0]);
-    console.log("Balance updated:", balanceEth, "SEI");
+    if (accounts.length > 0) {
+      setCurrentAccount(accounts[0]);
+      const balanceWei = await web3.eth.getBalance(accounts[0]);
+      const balanceEth = web3.utils.fromWei(balanceWei, "ether");
+      setBalance(balanceEth);
+    } else {
+      setCurrentAccount(null);
+      setBalance(null);
+      setNetwork(null);
+    }
   };
 
-  const sendTransaction = async () => {
-    try {
-      if (!window.ethereum) {
-        return alert("MetaMask is not installed");
-      }
-
-      if (!currentAccount) {
-        await connectWallet();
-        if (!currentAccount) {
-          return; // If still no current account after attempting to connect, stop here
-        }
-      }
-
-      if (!sendToAddress || !sendAmountSei) {
-        alert("Please enter both address and amount to send.");
-        return;
-      }
-
-      const web3 = new Web3(window.ethereum);
-      const amountWei = web3.utils.toWei(sendAmountSei, "ether");
-
-      const nonce = await web3.eth.getTransactionCount(currentAccount, "latest");
-      const gasPrice = await web3.eth.getGasPrice();
-      const gasLimit = 21000; // Basic transaction gas limit
-
-      const tx = {
-        from: currentAccount,
-        to: sendToAddress,
-        value: amountWei,
-        gas: gasLimit,
-        gasPrice: gasPrice,
-        nonce: nonce,
-      };
-
-      const txHash = await web3.eth.sendTransaction(tx);
-      console.log("Transaction sent. TxHash:", txHash);
-      setTxHash(txHash.transactionHash); //
-
-      alert("Transaction sent successfully!");
-      setSendToAddress("");
-      setSendAmountUsd("");
-      setSendAmountSei("");
-    } catch (error) {
-      console.error("Failed to send transaction:", error);
-      alert("Failed to send transaction.");
+  const handleAccountsChanged = async () => {
+    const web3 = new Web3(window.ethereum);
+    const accounts = await web3.eth.getAccounts();
+    if (accounts.length > 0) {
+      setCurrentAccount(accounts[0]);
+      const balanceWei = await web3.eth.getBalance(accounts[0]);
+      const balanceEth = web3.utils.fromWei(balanceWei, "ether");
+      setBalance(balanceEth);
+    } else {
+      setCurrentAccount(null);
+      setBalance(null);
+      setNetwork(null);
     }
   };
 
   const connectWallet = async () => {
     try {
-      if (!window.ethereum) {
-        return alert("MetaMask is not installed");
-      }
-      
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
       setCurrentAccount(accounts[0]);
-      console.log("Wallet connected:", accounts[0]);
 
-      const chainIdHex = await window.ethereum.request({
-        method: "eth_chainId",
-      });
-      const networkId = parseInt(chainIdHex, 16); // Convert hexadecimal chainId to decimal
-      console.log("Chain ID returned by MetaMask:", networkId);
+      const web3 = new Web3(window.ethereum);
+      const balanceWei = await web3.eth.getBalance(accounts[0]);
+      const balanceEth = web3.utils.fromWei(balanceWei, "ether");
+      setBalance(balanceEth);
 
-      switch (networkId) {
-        case 713715: // SEI Devnet
-          setNetwork("SEI Devnet");
-          await updateAccountAndBalance();
-          break;
-        default:
-          setNetwork(null); // Reset network state
-          setCurrentAccount(null); // Reset current account state
-          setBalance(null); // Reset balance state
-          alert("Please switch to SEI Devnet network");
-          await switchToSeiDevnet();
-          break;
-      }
+      const networkId = Number(await web3.eth.net.getId());
+      setNetwork(getNetworkName(networkId));
     } catch (error) {
       console.error(error);
       alert("An error occurred while connecting to the wallet");
     }
   };
 
-  const switchToSeiDevnet = async () => {
-    const networks = {
-      SEI_DEVNET: {
-        chainId: '0xae3f3',
-        chainName: 'SEI Devnet',
-        nativeCurrency: {
-          name: 'SEI Devnet',
-          symbol: 'SEI',
-          decimals: 18,
-        },
-        rpcUrls: ['https://evm-rpc-arctic-1.sei-apis.com'], // Replace with actual SEI Devnet RPC URL
-        blockExplorerUrls: ['https://seistream.app'],
-      },
+  const getNetworkName = (networkId) => {
+    switch (networkId) {
+      case 713715:
+        return "SEI DEV"
+      default:
+        return "Unknown";
+    }
+  };
+
+  const performNftAirdrop = async () => {
+    try {
+      if (!contractAddress || !sendToAddress) {
+        alert("Please enter contract address and recipient address.");
+        return;
+      }
+
+      const web3 = new Web3(window.ethereum);
+      const contract = new web3.eth.Contract(abi, contractAddress);
+
+      // Fetch token IDs owned by the current user
+      const tokenIds = await contract.methods.tokensOfOwner(currentAccount).call();
+      if (tokenIds.length === 0) {
+        alert("You do not own any tokens to airdrop.");
+        return;
+      }
+
+
+      const gas = await contract.methods
+        .safeTransferUpdate(currentAccount, sendToAddress)
+        .estimateGas({ from: currentAccount });
+
+      const gasPrice = await web3.eth.getGasPrice();
+
+      const tx = {
+        from: currentAccount,
+        to: contractAddress,
+        gas: gas,
+        gasPrice: gasPrice,
+        data: contract.methods.safeTransferUpdate(currentAccount, sendToAddress).encodeABI(),
+      };
+
+      const signedTx = await web3.eth.accounts.signTransaction(tx, PRIVATE_KEY);
+
+      const receipt = await web3.eth.sendSignedTransaction(
+        signedTx.rawTransaction
+      );
+
+      const updatedNftBalance = await contract.methods.balanceOf(currentAccount).call();
+      setNftBalance(parseInt(updatedNftBalance, 10));
+
+      const token = await contract.methods.tokensOfOwner(currentAccount).call();
+      setTokenIds(token.map(id => id.toString()));
+
+      setTransactionHash(receipt.transactionHash);
+      alert("NFT Airdrop successful!");
+    } catch (error) {
+      console.error("Failed to perform NFT Airdrop:", error);
+      alert("Failed to perform NFT Airdrop.");
+    }
+  };
+
+  useEffect(() => {
+    const fetchNftBalance = async () => {
+      try {
+        if (!currentAccount || !contractAddress) {
+          return;
+        }
+
+        const web3 = new Web3(window.ethereum);
+        const contract = new web3.eth.Contract(abi, contractAddress);
+
+        const balance = await contract.methods.balanceOf(currentAccount).call();
+        setNftBalance(parseInt(balance, 10));
+      } catch (error) {
+        console.error("Failed to fetch NFT balance:", error);
+        setNftBalance(null);
+      }
     };
 
-    const params = networks.SEI_DEVNET;
+    fetchNftBalance();
+  }, [currentAccount, contractAddress]);
 
-    try {
-      await window.ethereum.request({
-        method: 'wallet_addEthereumChain',
-        params: [params],
-      });
-    } catch (error) {
-      console.error('Failed to switch network:', error);
-      alert('Failed to switch network.');
-    }
-  };
+  useEffect(() => {
+    const fetchTokenIds = async () => {
+      try {
+        if (!currentAccount || !contractAddress) {
+          return;
+        }
 
-  const handleAmountChange = (amount) => {
-    setSendAmountUsd(amount);
-    if (seiToUsdRate) {
-      const convertedAmount = parseFloat(amount) / seiToUsdRate;
-      setSendAmountSei(convertedAmount.toFixed(18)); // Adjust decimal places if necessary
-    }
-  };
+        const web3 = new Web3(window.ethereum);
+        const contract = new web3.eth.Contract(abi, contractAddress);
+        const tokenIds = await contract.methods.tokensOfOwner(currentAccount).call();
+        setTokenIds(tokenIds.map(id => id.toString()));
+      } catch (error) {
+        console.error("Failed to fetch token IDs:", error);
+        setTokenIds([]);
+      }
+    };
+
+    fetchTokenIds();
+  }, [currentAccount, contractAddress]);
+
+
 
   return (
     <div className="box">
-      <div className="heder">
-        <div>Connect your wallet</div>
+       <h1>NFT Airdrop App</h1>
+       <h3>Remaining NFTs: {nftBalance}</h3>
+       <div className="heder">
+       <div>Connect your wallet</div>
         <button onClick={connectWallet} className="btn-1">
           Connect
-        </button>
-      </div>
-      {currentAccount && (
+         </button>
+  </div>
+  {/* {currentAccount && (
         <div className="data">
           <p>Wallet Address: {currentAccount}</p>
-          <p>Wallet Balance: {balance} SEI ({network})</p>
+          <p>
+            Wallet Balance: {balance} ({network && `${network}`})
+          </p>
           <p>Wallet Network: {network}</p>
         </div>
-      )}
-      <div className="form-main">
-        <div className="form">
-          <h3>Send Crypto Currency</h3>
-          <input
+      )} */}
+       <div className="form-main">
+       <div className="form">
+       <input
             type="text"
-            placeholder="Address"
-            value={sendToAddress}
+            value={contractAddress}
             disabled
-            onChange={(e) => setSendToAddress(e.target.value)}
           />
-          <br></br>
           <input
             type="text"
-            placeholder="Amount in USD"
-            value={sendAmountUsd}
-            onChange={(e) => handleAmountChange(e.target.value)}
+            value={currentAccount}
+            placeholder="Enter Your Wallet Address"
+            disabled
           />
-          <br></br>
-          {sendAmountUsd && seiToUsdRate !== null && (
-            <p>USD TO : {sendAmountSei} SEI</p>
+          <button onClick={performNftAirdrop}>Claim NFT</button>
+          {transactionHash && (
+            <p>Transaction Hash: <br/>{transactionHash}</p>
           )}
-          <button onClick={sendTransaction}>Send</button>
-          {txHash && (
-            <div className="form">
-              <h3>Transaction Hash</h3>
-              <p>{txHash}</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+           {/* <p>Your Token IDs:</p>
+           <ul>
+             {tokenIds.map((id, index) => (
+              <li key={index}>{id}</li>
+            ))}
+          </ul> */}
+       </div>
+       </div>
+</div>
+
   );
 }
 
 export default App;
 
-// convertor
