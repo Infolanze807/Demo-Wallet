@@ -9,7 +9,8 @@ background-color: #050D1D;
 display: flex;
 align-items: center;
 justify-content: center;
-height: 90vh;
+height: 100vh;
+
 }
 .box
 {
@@ -73,6 +74,7 @@ border-radius: 10px;
 border: none;
 background-color: rgb(237, 237, 237);
 outline: none;
+
 }
 .form button
 {
@@ -85,6 +87,11 @@ cursor: pointer;
 background-color:#050D1D ;
 color: white;
 
+}
+.form img
+{
+  height: 150px;
+  width: 250px;
 }
 
 .transactions {
@@ -110,4 +117,17 @@ color: white;
 
 .transactions li:last-child {
   border-bottom: none;
+}
+
+h1
+{
+  padding: 30px 0px;
+  text-align: center;
+  color: white;
+}
+h3
+{
+  padding-bottom: 30px;
+  text-align: center;
+  color: white;
 }
