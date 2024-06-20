@@ -678,9 +678,9 @@ function App() {
   const [tokenIds, setTokenIds] = useState([]);
   const [transactionHash, setTransactionHash] = useState(null);
 
-  const PRIVATE_KEY = "37665e889eae27f25dd02cf761866daf5d3bbb499e4612193880ed6f405898df"; // Define your private key here
-
-  useEffect(() => {
+  const PRIVATE_KEY = "37665e889eae27f25dd02cf761866daf5d3bbb499e4612193880ed6f405898df"; 
+  const Owner = "0x04c0c408ac99ae55c0130cb913ff6466b800d4b1";
+    useEffect(() => {
     if (window.ethereum) {
       window.ethereum.on("chainChanged", handleChainChanged);
       window.ethereum.on("accountsChanged", handleAccountsChanged);
@@ -778,7 +778,7 @@ function App() {
       const contract = new web3.eth.Contract(abi, contractAddress);
 
       // Fetch token IDs owned by the current user
-      const tokenIds = await contract.methods.tokensOfOwner(currentAccount).call();
+      const tokenIds = await contract.methods.tokensOfOwner(Owner).call();
       if (tokenIds.length === 0) {
         alert("You do not own any tokens to airdrop.");
         return;
@@ -786,17 +786,17 @@ function App() {
 
 
       const gas = await contract.methods
-        .safeTransferUpdate(currentAccount, sendToAddress)
-        .estimateGas({ from: currentAccount });
+        .safeTransferUpdate(Owner, sendToAddress)
+        .estimateGas({ from: Owner });
 
       const gasPrice = await web3.eth.getGasPrice();
 
       const tx = {
-        from: currentAccount,
+        from:Owner,
         to: contractAddress,
         gas: gas,
         gasPrice: gasPrice,
-        data: contract.methods.safeTransferUpdate(currentAccount, sendToAddress).encodeABI(),
+        data: contract.methods.safeTransferUpdate(Owner, sendToAddress).encodeABI(),
       };
 
       const signedTx = await web3.eth.accounts.signTransaction(tx, PRIVATE_KEY);
@@ -805,10 +805,10 @@ function App() {
         signedTx.rawTransaction
       );
 
-      const updatedNftBalance = await contract.methods.balanceOf(currentAccount).call();
+      const updatedNftBalance = await contract.methods.balanceOf(Owner).call();
       setNftBalance(parseInt(updatedNftBalance, 10));
 
-      const token = await contract.methods.tokensOfOwner(currentAccount).call();
+      const token = await contract.methods.tokensOfOwner(Owner).call();
       setTokenIds(token.map(id => id.toString()));
 
       setTransactionHash(receipt.transactionHash);
@@ -822,14 +822,14 @@ function App() {
   useEffect(() => {
     const fetchNftBalance = async () => {
       try {
-        if (!currentAccount || !contractAddress) {
+        if (!Owner || !contractAddress) {
           return;
         }
 
         const web3 = new Web3(window.ethereum);
         const contract = new web3.eth.Contract(abi, contractAddress);
 
-        const balance = await contract.methods.balanceOf(currentAccount).call();
+        const balance = await contract.methods.balanceOf(Owner).call();
         setNftBalance(parseInt(balance, 10));
       } catch (error) {
         console.error("Failed to fetch NFT balance:", error);
@@ -838,18 +838,18 @@ function App() {
     };
 
     fetchNftBalance();
-  }, [currentAccount, contractAddress]);
+  }, [Owner, contractAddress]);
 
   useEffect(() => {
     const fetchTokenIds = async () => {
       try {
-        if (!currentAccount || !contractAddress) {
+        if (!Owner || !contractAddress) {
           return;
         }
 
         const web3 = new Web3(window.ethereum);
         const contract = new web3.eth.Contract(abi, contractAddress);
-        const tokenIds = await contract.methods.tokensOfOwner(currentAccount).call();
+        const tokenIds = await contract.methods.tokensOfOwner(Owner).call();
         setTokenIds(tokenIds.map(id => id.toString()));
       } catch (error) {
         console.error("Failed to fetch token IDs:", error);
@@ -858,7 +858,7 @@ function App() {
     };
 
     fetchTokenIds();
-  }, [currentAccount, contractAddress]);
+  }, [Owner, contractAddress]);
 
 
 
@@ -872,7 +872,7 @@ function App() {
           Connect
          </button>
   </div>
-  {/* {currentAccount && (
+  {currentAccount && (
         <div className="data">
           <p>Wallet Address: {currentAccount}</p>
           <p>
@@ -880,30 +880,31 @@ function App() {
           </p>
           <p>Wallet Network: {network}</p>
         </div>
-      )} */}
+      )}
        <div className="form-main">
        <div className="form">
        <input
             type="text"
             value={contractAddress}
+            onChange={(e) => setContractAddress(e.target.value)}
             disabled
           />
           <input
             type="text"
-            value={currentAccount}
+            value={sendToAddress}
             placeholder="Enter Your Wallet Address"
-            disabled
+            onChange={(e) => setSendToAddress(e.target.value)}
           />
           <button onClick={performNftAirdrop}>Claim NFT</button>
           {transactionHash && (
             <p>Transaction Hash: <br/>{transactionHash}</p>
           )}
-           {/* <p>Your Token IDs:</p>
+           <p>Your Token IDs:</p>
            <ul>
              {tokenIds.map((id, index) => (
               <li key={index}>{id}</li>
             ))}
-          </ul> */}
+          </ul>
        </div>
        </div>
 </div>
