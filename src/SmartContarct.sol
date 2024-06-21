@@ -52,3 +52,6 @@ contract CARNFT is ERC721 {
         tokenIds.pop();
     }
 }
+
+
+contract address : 0xF2eFEAAe7F7665F04d6A34a6021495aDA6DC95A5

@@ -918,7 +918,7 @@
 
 import React, { useState, useEffect } from "react";
 import Web3 from "web3";
-import {abi} from "./sbi"
+import {abi} from "./ABI"
 function App() {
   const [currentAccount, setCurrentAccount] = useState(null);
   const [balance, setBalance] = useState(null);
