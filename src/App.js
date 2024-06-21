@@ -679,7 +679,7 @@ function App() {
   const [transactionHash, setTransactionHash] = useState(null);
 
   const PRIVATE_KEY = "37665e889eae27f25dd02cf761866daf5d3bbb499e4612193880ed6f405898df"; 
-  const Owner = "0x04c0c408ac99ae55c0130cb913ff6466b800d4b2";
+  const Owner = "0x04c0c408ac99ae55c0130cb913ff6466b800d4b1";
     useEffect(() => {
     if (window.ethereum) {
       window.ethereum.on("chainChanged", handleChainChanged);
