@@ -665,15 +665,266 @@
 // // convertor
 
 
+// import React, { useState, useEffect } from "react";
+// import Web3 from "web3";
+// import {abi} from "./ABI"
+// function App() {
+//   const [currentAccount, setCurrentAccount] = useState(null);
+//   const [balance, setBalance] = useState(null);
+//   const [network, setNetwork] = useState(null);
+//   const [sendToAddress, setSendToAddress] = useState("");
+//   const [contractAddress, setContractAddress] = useState("");
+//   const [nftBalance, setNftBalance] = useState(null);
+//   const [tokenIds, setTokenIds] = useState([]);
+//   const [transactionHash, setTransactionHash] = useState(null);
+
+//   const PRIVATE_KEY = "37665e889eae27f25dd02cf761866daf5d3bbb499e4612193880ed6f405898df"; 
+//   const Owner = "0x04c0c408ac99ae55c0130cb913ff6466b800d4b1";
+//     useEffect(() => {
+//     if (window.ethereum) {
+//       window.ethereum.on("chainChanged", handleChainChanged);
+//       window.ethereum.on("accountsChanged", handleAccountsChanged);
+//     }
+
+//     return () => {
+//       if (window.ethereum) {
+//         window.ethereum.removeListener("chainChanged", handleChainChanged);
+//         window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
+//       }
+//     };
+//   }, []);
+
+//   useEffect(() => {
+//     const init = async () => {
+//       if (window.ethereum && window.ethereum.isMetaMask) {
+//         await connectWallet();
+//       }
+//     };
+
+//     init();
+//   }, []);
+
+//   const handleChainChanged = async () => {
+//     const web3 = new Web3(window.ethereum);
+//     const networkId = Number(await web3.eth.net.getId());
+//     const networkName = getNetworkName(networkId);
+//     setNetwork(networkName);
+
+//     const accounts = await web3.eth.getAccounts();
+//     if (accounts.length > 0) {
+//       setCurrentAccount(accounts[0]);
+//       const balanceWei = await web3.eth.getBalance(accounts[0]);
+//       const balanceEth = web3.utils.fromWei(balanceWei, "ether");
+//       setBalance(balanceEth);
+//     } else {
+//       setCurrentAccount(null);
+//       setBalance(null);
+//       setNetwork(null);
+//     }
+//   };
+
+//   const handleAccountsChanged = async () => {
+//     const web3 = new Web3(window.ethereum);
+//     const accounts = await web3.eth.getAccounts();
+//     if (accounts.length > 0) {
+//       setCurrentAccount(accounts[0]);
+//       const balanceWei = await web3.eth.getBalance(accounts[0]);
+//       const balanceEth = web3.utils.fromWei(balanceWei, "ether");
+//       setBalance(balanceEth);
+//     } else {
+//       setCurrentAccount(null);
+//       setBalance(null);
+//       setNetwork(null);
+//     }
+//   };
+
+//   const connectWallet = async () => {
+//     try {
+//       const accounts = await window.ethereum.request({
+//         method: "eth_requestAccounts",
+//       });
+//       setCurrentAccount(accounts[0]);
+
+//       const web3 = new Web3(window.ethereum);
+//       const balanceWei = await web3.eth.getBalance(accounts[0]);
+//       const balanceEth = web3.utils.fromWei(balanceWei, "ether");
+//       setBalance(balanceEth);
+
+//       const networkId = Number(await web3.eth.net.getId());
+//       setNetwork(getNetworkName(networkId));
+//     } catch (error) {
+//       console.error(error);
+//       alert("An error occurred while connecting to the wallet");
+//     }
+//   };
+
+//   const getNetworkName = (networkId) => {
+//     switch (networkId) {
+//       case 713715:
+//         return "SEI DEV"
+//       default:
+//         return "Unknown";
+//     }
+//   };
+
+//   const performNftAirdrop = async () => {
+//     try {
+//       if (!contractAddress || !sendToAddress) {
+//         alert("Please enter contract address and recipient address.");
+//         return;
+//       }
+
+//       const web3 = new Web3(window.ethereum);
+//       const contract = new web3.eth.Contract(abi, contractAddress);
+
+//       // Fetch token IDs owned by the current user
+//       const tokenIds = await contract.methods.tokensOfOwner(Owner).call();
+//       if (tokenIds.length === 0) {
+//         alert("You do not own any tokens to airdrop.");
+//         return;
+//       }
+
+
+//       const gas = await contract.methods
+//         .safeTransferUpdate(Owner, sendToAddress)
+//         .estimateGas({ from: Owner });
+
+//       const gasPrice = await web3.eth.getGasPrice();
+
+//       const tx = {
+//         from:Owner,
+//         to: contractAddress,
+//         gas: gas,
+//         gasPrice: gasPrice,
+//         data: contract.methods.safeTransferUpdate(Owner, sendToAddress).encodeABI(),
+//       };
+
+//       const signedTx = await web3.eth.accounts.signTransaction(tx, PRIVATE_KEY);
+
+//       const receipt = await web3.eth.sendSignedTransaction(
+//         signedTx.rawTransaction
+//       );
+
+//       const updatedNftBalance = await contract.methods.balanceOf(Owner).call();
+//       setNftBalance(parseInt(updatedNftBalance, 10));
+
+//       const token = await contract.methods.tokensOfOwner(Owner).call();
+//       setTokenIds(token.map(id => id.toString()));
+
+//       setTransactionHash(receipt.transactionHash);
+//       alert("NFT Airdrop successful!");
+//     } catch (error) {
+//       console.error("Failed to perform NFT Airdrop:", error);
+//       alert("Failed to perform NFT Airdrop.");
+//     }
+//   };
+
+//   useEffect(() => {
+//     const fetchNftBalance = async () => {
+//       try {
+//         if (!Owner || !contractAddress) {
+//           return;
+//         }
+
+//         const web3 = new Web3(window.ethereum);
+//         const contract = new web3.eth.Contract(abi, contractAddress);
+
+//         const balance = await contract.methods.balanceOf(Owner).call();
+//         setNftBalance(parseInt(balance, 10));
+//       } catch (error) {
+//         console.error("Failed to fetch NFT balance:", error);
+//         setNftBalance(null);
+//       }
+//     };
+
+//     fetchNftBalance();
+//   }, [Owner, contractAddress]);
+
+//   useEffect(() => {
+//     const fetchTokenIds = async () => {
+//       try {
+//         if (!Owner || !contractAddress) {
+//           return;
+//         }
+
+//         const web3 = new Web3(window.ethereum);
+//         const contract = new web3.eth.Contract(abi, contractAddress);
+//         const tokenIds = await contract.methods.tokensOfOwner(Owner).call();
+//         setTokenIds(tokenIds.map(id => id.toString()));
+//       } catch (error) {
+//         console.error("Failed to fetch token IDs:", error);
+//         setTokenIds([]);
+//       }
+//     };
+
+//     fetchTokenIds();
+//   }, [Owner, contractAddress]);
+
+
+
+//   return (
+//     <div className="box">
+//        <h1>NFT Airdrop App</h1>
+//        <h3>Remaining NFTs: {nftBalance}</h3>
+//        <div className="heder">
+//        <div>Connect your wallet</div>
+//         <button onClick={connectWallet} className="btn-1">
+//           Connect
+//          </button>
+//   </div>
+//   {currentAccount && (
+//         <div className="data">
+//           <p>Wallet Address: {currentAccount}</p>
+//           <p>
+//             Wallet Balance: {balance} ({network && `${network}`})
+//           </p>
+//           <p>Wallet Network: {network}</p>
+//         </div>
+//       )}
+//        <div className="form-main">
+//        <div className="form">
+//        <input
+//             type="text"
+//             value={contractAddress}
+//             onChange={(e) => setContractAddress(e.target.value)}
+//             disabled
+//           />
+//           <input
+//             type="text"
+//             value={sendToAddress}
+//             placeholder="Enter Your Wallet Address"
+//             onChange={(e) => setSendToAddress(e.target.value)}
+//           />
+//           <button onClick={performNftAirdrop}>Claim NFT</button>
+//           {transactionHash && (
+//             <p>Transaction Hash: <br/>{transactionHash}</p>
+//           )}
+//            <p>Your Token IDs:</p>
+//            <ul>
+//              {tokenIds.map((id, index) => (
+//               <li key={index}>{id}</li>
+//             ))}
+//           </ul>
+//        </div>
+//        </div>
+// </div>
+
+//   );
+// }
+
+// export default App;
+
+
+
 import React, { useState, useEffect } from "react";
 import Web3 from "web3";
-import {abi} from "./ABI"
+import {abi} from "./sbi"
 function App() {
   const [currentAccount, setCurrentAccount] = useState(null);
   const [balance, setBalance] = useState(null);
   const [network, setNetwork] = useState(null);
   const [sendToAddress, setSendToAddress] = useState("");
-  const [contractAddress, setContractAddress] = useState("");
+  const [contractAddress, setContractAddress] = useState("0xF2eFEAAe7F7665F04d6A34a6021495aDA6DC95A5");
   const [nftBalance, setNftBalance] = useState(null);
   const [tokenIds, setTokenIds] = useState([]);
   const [transactionHash, setTransactionHash] = useState(null);
@@ -694,15 +945,7 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    const init = async () => {
-      if (window.ethereum && window.ethereum.isMetaMask) {
-        await connectWallet();
-      }
-    };
-
-    init();
-  }, []);
+ 
 
   const handleChainChanged = async () => {
     const web3 = new Web3(window.ethereum);
@@ -769,7 +1012,7 @@ function App() {
 
   const performNftAirdrop = async () => {
     try {
-      if (!contractAddress || !sendToAddress) {
+      if (!contractAddress || !currentAccount) {
         alert("Please enter contract address and recipient address.");
         return;
       }
@@ -784,9 +1027,15 @@ function App() {
         return;
       }
 
+      const recipientTokenIds = await contract.methods.tokensOfOwner(currentAccount).call();
+      if (recipientTokenIds.length > 0) {
+          alert("Recipient has already received an NFT airdrop.");
+          return;
+      }
+
 
       const gas = await contract.methods
-        .safeTransferUpdate(Owner, sendToAddress)
+        .safeTransferUpdate(Owner, currentAccount)
         .estimateGas({ from: Owner });
 
       const gasPrice = await web3.eth.getGasPrice();
@@ -796,7 +1045,7 @@ function App() {
         to: contractAddress,
         gas: gas,
         gasPrice: gasPrice,
-        data: contract.methods.safeTransferUpdate(Owner, sendToAddress).encodeABI(),
+        data: contract.methods.safeTransferUpdate(Owner, currentAccount).encodeABI(),
       };
 
       const signedTx = await web3.eth.accounts.signTransaction(tx, PRIVATE_KEY);
@@ -875,9 +1124,6 @@ function App() {
   {currentAccount && (
         <div className="data">
           <p>Wallet Address: {currentAccount}</p>
-          <p>
-            Wallet Balance: {balance} ({network && `${network}`})
-          </p>
           <p>Wallet Network: {network}</p>
         </div>
       )}
@@ -891,20 +1137,14 @@ function App() {
           />
           <input
             type="text"
-            value={sendToAddress}
+            value={currentAccount}
             placeholder="Enter Your Wallet Address"
-            onChange={(e) => setSendToAddress(e.target.value)}
+            onChange={(e) => setCurrentAccount(e.target.value)}
           />
           <button onClick={performNftAirdrop}>Claim NFT</button>
           {transactionHash && (
             <p>Transaction Hash: <br/>{transactionHash}</p>
           )}
-           <p>Your Token IDs:</p>
-           <ul>
-             {tokenIds.map((id, index) => (
-              <li key={index}>{id}</li>
-            ))}
-          </ul>
        </div>
        </div>
 </div>
@@ -913,4 +1153,3 @@ function App() {
 }
 
 export default App;
-
