@@ -924,7 +924,7 @@ function App() {
   const [balance, setBalance] = useState(null);
   const [network, setNetwork] = useState(null);
   const [sendToAddress, setSendToAddress] = useState("");
-  const [contractAddress, setContractAddress] = useState("0xF2eFEAAe7F7665F04d6A34a6021495aDA6DC95A5");
+  const [contractAddress, setContractAddress] = useState("0xb90433cfED656E384039C43eeA05011DDe33B35B");
   const [nftBalance, setNftBalance] = useState(null);
   const [tokenIds, setTokenIds] = useState([]);
   const [transactionHash, setTransactionHash] = useState(null);
